@@ -28,7 +28,7 @@ import traceback
 import tempfile
 import base64
 import getpass
-import hashlib
+import re
 
 import ansible.constants as C 
 import ansible.connection
@@ -432,10 +432,7 @@ class Runner(object):
         if os.path.exists(dest):
             utils.get_md5sum(dest)
 
-        try:
-            remote_md5 = self._exec_command(conn, "md5sum %s" % source, tmp, True)[0].split()[0]
-        except:
-            remote_md5 = self._exec_command(conn, "md5 -q %s" % source, tmp, True)[0]
+        remote_md5 = re.search('([a-f0-9]{32})', self._exec_command(conn, "$(which md5 || which md5sum) %s" % source, tmp, True)[0]).group(0)
 
         if remote_md5 != local_md5:
             # create the containing directories, if needed
